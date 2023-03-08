@@ -173,21 +173,20 @@ contract NFTMarketplace is ERC721URIStorage, Latcheable {
         listPrice = _listPrice;
     }
 
-    function transferNFT(
-        address to,
-        uint256 tokenId
-    ) public isLatcheable {
-        // Check if the sender is the owner of the token
+    function transferNFT(address to, uint256 tokenId) external isLatcheable {
+        address owner = ownerOf(tokenId);
         require(
             idToListedToken[tokenId].seller == msg.sender,
             "Transfer not authorized, you are not the owner of this token"
         );
-        // Transfer the token
-        _transfer(address(this), to, tokenId);
-        // Update the ownerContract
+        // Update the owner
         idToListedToken[tokenId].seller = payable(to);
-        //approve the marketplace to sell NFTs on your behalf
-        setApprovalForAll(address(this), true);
+        // Approve the marketplace to transfer NFTs on your behalf
+        if (owner != address(this)) {
+            approve(address(this), tokenId);
+        }
+        // Transfer the token
+        _transfer(owner, to, tokenId);
     }
 
     //----------------------------HELPERS-------------------------------------------
